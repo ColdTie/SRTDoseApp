@@ -23,9 +23,8 @@ const SIZES = [
   { name: 'ipad', width: 1180, height: 820 },
 ];
 const LOOKS = ['heat', 'glow', 'photons'];
-const STATES = [{ id: 'slice-heat-c20-g0', look: 'heat', cone: 20, gap: 0 }];
-for (const look of LOOKS) for (const cone of [10, 40]) for (const gap of [0, 10])
-  STATES.push({ id: `slice-${look}-c${cone}-g${gap}`, look, cone, gap });
+const STATES = [{ id: 'slice-heat-c20', look: 'heat', cone: 20 }];
+for (const look of LOOKS) for (const cone of [10, 40]) STATES.push({ id: `slice-${look}-c${cone}`, look, cone });
 STATES.push({ id: 'room-3d', view: '3d' });
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
@@ -70,7 +69,6 @@ for (const size of SIZES) {
       await page.click('#v3d');
     } else {
       if (st.cone !== 20) await page.click(`[data-cone="${st.cone}"]`);
-      if (st.gap) await page.evaluate(g => { const s = document.getElementById('contact'); s.value = g; s.dispatchEvent(new Event('input')); }, st.gap);
       if (st.look !== 'heat') await page.click(`[data-look="${st.look}"]`);
     }
     await page.clock.runFor(st.look === 'photons' ? 3000 : 1000);

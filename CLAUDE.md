@@ -133,6 +133,7 @@ Tumor: nodular basal cell carcinoma, 12 mm wide, lobulated base, deepest point j
 - Tap readout: top right, just below the view buttons, small. Crosshair marks the tapped point.
 - Applicator walls: smooth angled vector lines with acrylic shading, semi transparent in X ray glasses and Photons.
 - No "Applicator" label, no "Tap the slice" hint on the slice.
+- No title or subtitle at the top of the panel, and no "Gap above skin" control (Steve removed both, October 2026). The model still supports an air gap; the app always shows the applicator touching.
 - Pixel art feel: dose and tissue drawn on a low resolution buffer (0.4 mm pixels) scaled up with no smoothing. Lines, labels and walls drawn crisp on top.
 
 ## Copy rules
@@ -145,7 +146,7 @@ Tumor: nodular basal cell carcinoma, 12 mm wide, lobulated base, deepest point j
 ## Verification (every session)
 
 1. `node --test` must pass. Tests live in `tests/` and import the physics module directly. They must cover every row of the Expected values table above, for all five cones where it applies.
-2. Screenshot check with Playwright at three sizes: iPhone portrait 390 × 844, short phone 390 × 620, iPad landscape 1180 × 820. For each: Skin slice in all three looks, gap 0 and 10 mm, 10 mm and 40 mm cones, and the 3D room. Save to `screenshots/` (git ignored) and look at them before committing. Check for overlapping labels, text covering the beam, and anything cut off.
+2. Screenshot check with Playwright at three sizes: iPhone portrait 390 × 844, short phone 390 × 620, iPad landscape 1180 × 820. For each: Skin slice in all three looks, 10 mm and 40 mm cones, and the 3D room. Save to `screenshots/` (git ignored) and look at them before committing. Check for overlapping labels, text covering the beam, and anything cut off.
 3. The in app Accuracy check charts must still show the model line through every table dot.
 4. Open the page with the browser console visible. No errors.
 
