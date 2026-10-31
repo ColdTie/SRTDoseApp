@@ -130,13 +130,13 @@ Tumor: nodular basal cell carcinoma, lobulated base. By default 10 mm wide (with
 - Dashed line at the prescription depth.
 - Just above the skin: a thin white bracket at the field edge (the cone opening) and a pink dashed bracket for lesion plus margin.
 - Thin dark lines at layer boundaries (not pixel thick).
-- Depth ruler on the left: ticks and numbers at 1 to 5 mm only. When a millimeter is under 11 screen pixels (phones with the wider cones), only 1, 3 and 5 get numbers.
+- Depth ruler on the left: ticks and numbers at 1 to 5 mm only. When a millimeter is under 11 screen pixels (phones with the wider cones), only 1, 3 and 5 get numbers. That covers the short phone with any cone and taller phones with the 30 and 40 mm cones.
 - Color key: small stepped bar, bottom left of the slice, heat map only.
 - Tap readout: top right, just below the view buttons, small. Crosshair marks the tapped point.
 - Applicator walls: smooth angled vector lines with acrylic shading, semi transparent in X ray glasses and Photons.
 - No "Applicator" label, no "Tap the slice" hint on the slice.
 - No title or subtitle at the top of the panel, and no "Gap above skin" control (Steve removed both, October 2026). The model still supports an air gap; the app always shows the applicator touching.
-- Panel order: Lesion and dose, Applicator, Dose per visit, Accuracy check, then How the dose looks (look buttons and tumor outline toggle) at the bottom (Steve, October 2026).
+- Panel order: Patient mode switch, Lesion and dose, Applicator, Dose per visit, Accuracy check, then How the dose looks (look buttons and tumor outline toggle) at the bottom (Steve, October 2026).
 - Pixel art feel: dose and tissue drawn on a low resolution buffer (0.4 mm pixels) scaled up with no smoothing. Lines, labels and walls drawn crisp on top.
 
 ## Copy rules
@@ -149,7 +149,7 @@ Tumor: nodular basal cell carcinoma, lobulated base. By default 10 mm wide (with
 ## Verification (every session)
 
 1. `node --test` must pass. Tests live in `tests/` and import the physics module directly. They must cover every row of the Expected values table above, for all five cones where it applies.
-2. Screenshot check with Playwright at three sizes: iPhone portrait 390 × 844, short phone 390 × 620, iPad landscape 1180 × 820. For each: Skin slice in all three looks, 10 mm and 40 mm cones, and the 3D room. Save to `screenshots/` (git ignored) and look at them before committing. Check for overlapping labels, text covering the beam, and anything cut off.
+2. Screenshot check with Playwright at three sizes: iPhone portrait 390 × 844, short phone 390 × 620, iPad landscape 1180 × 820. For each: Skin slice in all three looks, 10 mm and 40 mm cones, the 3D room, and patient mode (Skin slice and 3D room). Save to `screenshots/` (git ignored) and look at them before committing. Check for overlapping labels, text covering the beam, and anything cut off.
 3. The in app Accuracy check charts must still show the model line through every table dot.
 4. Open the page with the browser console visible. No errors.
 
@@ -174,7 +174,10 @@ Steve's decisions: beam on time uses the 6 Gy column scaled by dose / 6, so the 
 - Research thickness values from published ultrasound or MRI studies, cite each in Sources, and mark any estimate as an estimate.
 - Optional bone dose toggle using published 50 kV Monte Carlo values: bone dose about 4 to 6 times water at the same depth; tissue beyond bone shadowed about 5 times faster than water. Label it as approximate.
 
-### 3. Patient mode
+### 3. Patient mode (done, October 2026)
+
+Built as: a "Patient mode" checkbox at the top of the panel, off when the page opens. The sentence sits in large bold text just under the switch, not on the slice, so it never covers the beam. On the slice patient mode hides the isodose numbers, depth ruler and color key; isodose lines, the dashed prescription line, brackets, tumor and tissue labels stay. In the panel it hides Lesion and dose, Applicator (and with it the 3D spot controls), Accuracy check, and the half depth and beam width rows. The readout (tumor base, skin surface, course total, beam on time), the look buttons, the outline toggle and the footer disclaimer stay, and the "Reference only" note shows under the readout. Panel text and tissue labels are larger; the tap readout stays its normal size so it does not cover the tapped point.
+
 
 - One switch that hides isodose numbers, ruler, color key and the accuracy charts. Keeps colors, tumor and a single plain sentence such as "Most of the dose stays in the top few millimeters."
 - Larger text, fewer controls.

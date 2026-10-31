@@ -30,6 +30,10 @@ STATES.push({ id: 'room-3d', view: '3d' });
 STATES.push({ id: 'lesion-d3.4-w18-m5-3gy-c30', look: 'heat', cone: 30, les: { usDepth: 3.4, usDiam: 18, usMargin: 5 }, rx: 3 });
 STATES.push({ id: 'lesion-d5.0-w40-m5-c40', look: 'heat', cone: 40, les: { usDepth: 5, usDiam: 40, usMargin: 5 } });
 STATES.push({ id: 'lesion-d0.5-w3-m3-c10', look: 'heat', cone: 10, les: { usDepth: 0.5, usDiam: 3, usMargin: 3 } });
+// Patient mode (skipped on versions without it).
+STATES.push({ id: 'patient-slice-heat-c20', look: 'heat', cone: 20, patient: true });
+STATES.push({ id: 'patient-slice-photons-c40', look: 'photons', cone: 40, patient: true });
+STATES.push({ id: 'patient-room-3d', view: '3d', patient: true });
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
   '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml' };
@@ -69,6 +73,7 @@ for (const size of SIZES) {
     await page.evaluate(() => document.fonts.ready);
     // Redraw once the fonts are in, as a resize would, so chart text does not depend on load timing.
     await page.evaluate(() => window.dispatchEvent(new Event('resize')));
+    if (st.patient && !(await page.$('#patient'))) { await page.close(); continue; }
     if (st.view === '3d') {
       await page.click('#v3d');
     } else {
@@ -81,6 +86,8 @@ for (const size of SIZES) {
       if (st.cone !== 20) await page.click(`[data-cone="${st.cone}"]`);
       if (st.look !== 'heat') await page.click(`[data-look="${st.look}"]`);
     }
+    // Last, since patient mode hides the cone buttons.
+    if (st.patient) await page.check('#patient');
     await page.clock.runFor(st.look === 'photons' ? 3000 : 1000);
     await page.screenshot({ path: join(OUT, `${size.name}-${st.id}.png`), fullPage: true });
     await page.close();

@@ -92,11 +92,23 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
 .row b.warn{color:var(--amber)}
 .state{margin:10px 0 0;font-size:14px}
 .key{position:absolute;left:12px;bottom:10px;z-index:3;width:min(190px,52%);background:rgba(14,27,44,.8);padding:5px 7px 4px;display:none;pointer-events:none}
-.stage.flat.heat .key{display:block}
+.app:not(.patient) .stage.flat.heat .key{display:block}
 .key .legend{height:7px;border:1px solid #e3f4ff}
 .key .lg{position:relative;height:12px;font-size:10px;line-height:1.2;color:#cfe3f2;margin-top:2px;font-variant-numeric:tabular-nums}
 .note{font-size:12.5px;color:var(--muted);margin:0}
 .only3d[hidden]{display:none}
+/* Patient mode: no ruler, isodose numbers, color key or charts, fewer controls, larger text, one plain sentence at the top of the panel. */
+.plain{font-size:20px;font-weight:700;line-height:1.3;margin:14px 0 0;padding:2px 0 2px 12px;border-left:4px solid var(--beam)}
+.patient-only{display:none}
+.app.patient .patient-only{display:block}
+.app.patient .tech{display:none}
+.app.patient .panel h2{font-size:19px}
+.app.patient .seg button{font-size:17px;padding:13px 6px}
+.app.patient .state,.app.patient .toggle{font-size:17px}
+.app.patient .row span{font-size:17px}
+.app.patient .row b{font-size:26px}
+.app.patient .row b.small{font-size:18px}
+.app.patient .note{font-size:15px}
 @media (max-width: 820px){
   .app{display:block;height:auto}
   .stage{height:62vh;height:62svh}
@@ -125,6 +137,11 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
 
   <aside class="panel">
     <section>
+      <label class="toggle" style="margin-top:0"><input type="checkbox" id="patient" autocomplete="off"> Patient mode</label>
+      <p class="plain patient-only">Most of the dose stays in the top few millimeters.</p>
+    </section>
+
+    <section class="tech">
       <h2>Lesion and dose</h2>
       <div class="step"><label for="usDepth">US lesion depth</label><div class="stepper"><button type="button" data-d="-1" aria-label="Less depth">−</button><span class="val"><input id="usDepth" type="text" inputmode="decimal" autocomplete="off" min="0.5" max="6" step="0.1" value="2.0"><span class="unit">mm</span></span><button type="button" data-d="1" aria-label="More depth">+</button></div></div>
       <div class="step"><label for="usDiam">Lesion diameter</label><div class="stepper"><button type="button" data-d="-1" aria-label="Smaller diameter">−</button><span class="val"><input id="usDiam" type="text" inputmode="decimal" autocomplete="off" min="3" max="40" step="1" value="10.0"><span class="unit">mm</span></span><button type="button" data-d="1" aria-label="Larger diameter">+</button></div></div>
@@ -135,7 +152,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
       <p class="note" style="margin-top:12px">Reference only. Treatment uses the clinic’s commissioned data and physicist.</p>
     </section>
 
-    <section>
+    <section class="tech">
       <h2>Applicator</h2>
       <div class="seg seg5" role="group" aria-label="Applicator size">
         <button data-cone="10" aria-pressed="false">10</button><button data-cone="15" aria-pressed="false">15</button><button data-cone="20" aria-pressed="true">20</button><button data-cone="30" aria-pressed="false">30</button><button data-cone="40" aria-pressed="false">40 mm</button>
@@ -162,14 +179,15 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
         <div class="row"><span id="rBaseLab">Tumor base, planned 2.0 mm deep</span><b id="rBase">2.50 Gy</b></div>
         <div class="row"><span id="rSurfLab">Skin surface</span><b id="rSurf">3.00 Gy</b></div>
         <div class="row"><span id="rTotalLab">Course total at tumor base (20 visits)</span><b id="rTotal">50.0 Gy</b></div>
-        <div class="row"><span>Dose drops to half at</span><b id="rHalf">8.2 mm</b></div>
-        <div class="row"><span>Beam width at skin</span><b id="rWidth">20.0 mm</b></div>
+        <div class="row tech"><span>Dose drops to half at</span><b id="rHalf">8.2 mm</b></div>
+        <div class="row tech"><span>Beam width at skin</span><b id="rWidth">20.0 mm</b></div>
         <div class="row"><span>Beam on time per visit (clinic table)</span><b id="rTime">1.25 min</b></div>
       </div>
       <p class="state" id="rxNote" hidden>Past 4.0 mm the clinic table stops, so the depth dose and skin dose here are estimated.</p>
+      <p class="note patient-only" style="margin-top:12px">Reference only. Treatment uses the clinic’s commissioned data and physicist.</p>
     </section>
 
-    <section>
+    <section class="tech">
       <h2>Accuracy check</h2>
       <canvas id="chkDepth" class="chk" aria-label="Depth dose: model compared with the clinic table and published beams"></canvas>
       <p class="note chknote" id="chkDepthNote"></p>
@@ -200,7 +218,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
 import {SSD,RX_D,RX_GY,CONES,FR,CONE,DSURF,setCone,setRx,doseAt,isoDepth,offAxis,edgeAt,beamTime,coverage} from './physics.js';
 const SSDU=6, T_SOFT=12;
 let FX=20;
-const state={view:'3d',look:'heat',contact:0,along:0,angle:0,cut:true,outline:true};
+const state={view:'3d',look:'heat',contact:0,along:0,angle:0,cut:true,outline:true,patient:false};
 /* Lesion from today's ultrasound (mm). The prescription depth is the ultrasound depth. */
 const lesion={depth:2,diam:10,margin:5};
 /* Nodular basal cell carcinoma, lobulated base. Width is the lesion diameter; the deepest point sits just above the prescription
@@ -237,6 +255,8 @@ $('along').addEventListener('input',e=>{state.along=+e.target.value;onChange();}
 $('angle').addEventListener('input',e=>{state.angle=+e.target.value;onChange();});
 $('cut').addEventListener('change',e=>{state.cut=e.target.checked;update3D();});
 $('outline').addEventListener('change',e=>{state.outline=e.target.checked;});
+/* Patient mode hides the technical parts; the charts are redrawn when they come back, since they can't size while hidden. */
+$('patient').addEventListener('change',e=>{state.patient=e.target.checked;document.querySelector('.app').classList.toggle('patient',state.patient);clearProbe();if(!state.patient)drawChecks();});
 document.querySelectorAll('[data-cone]').forEach(b=>b.addEventListener('click',()=>{setCone(+b.dataset.cone);
   document.querySelectorAll('[data-cone]').forEach(x=>x.setAttribute('aria-pressed',x===b));
   if(typeof sizeSlice==='function'){img=null;sizeSlice();}clearProbe();cover();onChange();drawChecks();}));
@@ -470,7 +490,7 @@ function drawSlice(dt){
   sctx.fillStyle='#0e1b2c';sctx.fillRect(0,0,cw,ch);sctx.imageSmoothingEnabled=false;
   sctx.drawImage(buf,0,0,SW,SH,ox,oy,SW*sc,SH*sc);
   drawLayers(ox,oy,sc,dpr);
-  drawIso(look,ox,oy,sc,dpr);if(look!=='photons')isoLabels(look,ox,oy,sc,dpr);drawRuler(ox,oy,sc,dpr,ch);
+  drawIso(look,ox,oy,sc,dpr);if(!state.patient){if(look!=='photons')isoLabels(look,ox,oy,sc,dpr);drawRuler(ox,oy,sc,dpr,ch);}
   {const wx=x=>ox+((x-X0)/PX)*sc,wy=y=>oy+((y-Y0)/PX)*sc,yT=Y0-1,yE=g.yEnd,Rt=FR*(yT-g.yS)/SSD,Re=FR,T=1.8;
     sctx.save();sctx.globalAlpha=look==='heat'?0.92:0.55;
     for(const sgn of [-1,1]){sctx.beginPath();sctx.moveTo(wx(sgn*Rt),wy(yT));sctx.lineTo(wx(sgn*Re),wy(yE));sctx.lineTo(wx(sgn*(Re+T)),wy(yE));sctx.lineTo(wx(sgn*(Rt+T)),wy(yT));sctx.closePath();
@@ -483,10 +503,10 @@ function drawSlice(dt){
   if(probePt&&probePt.i<SW&&probePt.j<SH){const cx=ox+(probePt.i+0.5)*sc,cy=oy+(probePt.j+0.5)*sc,a=7*dpr,g2=2.5*dpr;sctx.fillStyle='#ffffff';sctx.strokeStyle='#0e1b2c';sctx.lineWidth=3*dpr;
     sctx.beginPath();sctx.moveTo(cx-a,cy);sctx.lineTo(cx-g2,cy);sctx.moveTo(cx+g2,cy);sctx.lineTo(cx+a,cy);sctx.moveTo(cx,cy-a);sctx.lineTo(cx,cy-g2);sctx.moveTo(cx,cy+g2);sctx.lineTo(cx,cy+a);sctx.stroke();
     sctx.strokeStyle='#ffffff';sctx.lineWidth=1.5*dpr;sctx.stroke();}
-  const fs=Math.round(12*dpr);sctx.font=fs+'px "Atkinson Hyperlegible",sans-serif';sctx.textBaseline='middle';
+  const fs=Math.round((state.patient?15:12)*dpr);sctx.font=fs+'px "Atkinson Hyperlegible",sans-serif';sctx.textBaseline='middle';
   sctx.shadowColor='rgba(0,0,0,.85)';sctx.shadowBlur=3*dpr;sctx.fillStyle='#e8f2fa';
   const RE=ox+SW*sc-6*dpr,toXo=x=>ox+((x-X0)/PX)*sc;
-  const lab=(t,d)=>{const yy=Math.min(oy+((d-Y0)/PX)*sc,Math.min(ch,oy+SH*sc)-46*dpr),tw=sctx.measureText(t).width;sctx.shadowBlur=0;sctx.fillStyle='rgba(14,27,44,.72)';sctx.fillRect(RE-tw-8*dpr,yy-fs*0.7,tw+8*dpr,fs*1.4);sctx.fillStyle='#e8f2fa';sctx.textAlign='right';sctx.fillText(t,RE-4*dpr,yy);sctx.textAlign='left';sctx.shadowBlur=3*dpr;};
+  const lab=(t,d)=>{const yy=Math.min(oy+((d-Y0)/PX)*sc,Math.min(ch,oy+SH*sc)-34*dpr-fs),tw=sctx.measureText(t).width;sctx.shadowBlur=0;sctx.fillStyle='rgba(14,27,44,.72)';sctx.fillRect(RE-tw-8*dpr,yy-fs*0.7,tw+8*dpr,fs*1.4);sctx.fillStyle='#e8f2fa';sctx.textAlign='right';sctx.fillText(t,RE-4*dpr,yy);sctx.textAlign='left';sctx.shadowBlur=3*dpr;};
   const xr=X0+SW*PX-3,sr=surf(xr);lab('Skin',sr+0.7);lab('Fat',sr+3.9);lab('Muscle',sr+13);
   if(Y0+SH*PX>22)lab('Bone',sr+22);
   const toX=x=>ox+((x-X0)/PX)*sc,toY=y=>oy+((y-Y0)/PX)*sc;
