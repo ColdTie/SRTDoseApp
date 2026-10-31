@@ -144,7 +144,7 @@ Tumor: nodular basal cell carcinoma, lobulated base. By default 10 mm wide (with
 - Plain language a patient can follow. Sentence case.
 - No hyphens in any UI text. Write "x ray", "out of field", "beam on time".
 - Typographic apostrophes and quotes in visible text.
-- Numbers: Gy to 2 decimals, mm to 1 decimal. Course totals are whole Gy (“50 Gy”), in the panel and the tap readout (Steve, October 2026).
+- Numbers: Gy to 2 decimals, mm to 1 decimal. Exceptions (Steve, October 2026): course totals are whole Gy (“50 Gy”), in the panel and the tap readout, and the dose buttons read “2.5 Gy × 20 visits” and “3 Gy × 15 visits”.
 
 ## Verification (every session)
 
