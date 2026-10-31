@@ -126,11 +126,11 @@ Tumor: nodular basal cell carcinoma, lobulated base. By default 10 mm wide (with
 - Default view: Skin slice. 3D room is the second tab.
 - Stage background dark navy `#0e1b2c`. Panel follows light and dark mode.
 - Heat map: Turbo colormap, stepped in 10% bands, color = `turbo(0.1 + 0.85 × band)`. Alpha ramps from 4% to 16% dose. Tissue colors muted (55% desaturated) in heat mode so color means dose.
-- Isodose lines 90, 80, 50, 20 drawn at screen resolution (marching squares), thin white with a dark edge, small boxed number labels on each line. Labels slide up their line if they would land on the color key.
+- Isodose lines 90, 80, 50, 20 drawn at screen resolution (marching squares), thin white with a dark edge, small boxed number labels on each line. Labels slide up their line if they would land on the color key, and step toward the center along their line if they would sit on another label.
 - Dashed line at the prescription depth.
 - Just above the skin: a thin white bracket at the field edge (the cone opening) and a pink dashed bracket for lesion plus margin.
 - Thin dark lines at layer boundaries (not pixel thick).
-- Depth ruler on the left: ticks and numbers at 1 to 5 mm only.
+- Depth ruler on the left: ticks and numbers at 1 to 5 mm only. When a millimeter is under 11 screen pixels (phones with the wider cones), only 1, 3 and 5 get numbers.
 - Color key: small stepped bar, bottom left of the slice, heat map only.
 - Tap readout: top right, just below the view buttons, small. Crosshair marks the tapped point.
 - Applicator walls: smooth angled vector lines with acrylic shading, semi transparent in X ray glasses and Photons.

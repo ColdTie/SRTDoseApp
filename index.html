@@ -373,19 +373,25 @@ function bandRel(rel){return rel>=1?1:(Math.floor(rel*10)+0.5)/10;}
 function drawRuler(ox,oy,sc,dpr,ch){const x0=Math.max(ox,0)+4*dpr,W=26*dpr,mmPx=sc/PX,yTop=oy+((surf(X0+1)-Y0)/PX)*sc,yEnd=yTop+5*mmPx;
   sctx.save();sctx.shadowBlur=0;sctx.fillStyle='rgba(10,20,34,.78)';sctx.fillRect(x0,yTop,W,5*mmPx+16*dpr);
   sctx.strokeStyle='#e3f4ff';sctx.fillStyle='#e3f4ff';sctx.lineWidth=Math.max(1,dpr);sctx.textBaseline='middle';sctx.font=Math.round(10*dpr)+'px "Atkinson Hyperlegible",sans-serif';
-  for(let mm=0;mm<=5;mm++){const y=Math.round(yTop+mm*mmPx)+0.5;sctx.beginPath();sctx.moveTo(x0+W-8*dpr,y);sctx.lineTo(x0+W,y);sctx.stroke();if(mm>0)sctx.fillText(String(mm),x0+4*dpr,y);}
+  /* On phones with the wider cones a millimeter is only a few pixels, so only 1, 3 and 5 get numbers. */
+  const every=mmPx<11*dpr?2:1;
+  for(let mm=0;mm<=5;mm++){const y=Math.round(yTop+mm*mmPx)+0.5;sctx.beginPath();sctx.moveTo(x0+W-8*dpr,y);sctx.lineTo(x0+W,y);sctx.stroke();if(mm>0&&(mm-1)%every===0)sctx.fillText(String(mm),x0+4*dpr,y);}
   sctx.beginPath();sctx.moveTo(x0+W-0.5*dpr,yTop);sctx.lineTo(x0+W-0.5*dpr,yEnd);sctx.stroke();
   sctx.font=Math.round(9*dpr)+'px "Atkinson Hyperlegible",sans-serif';sctx.fillText('mm',x0+4*dpr,yEnd+9*dpr);sctx.restore();}
 function drawLayers(ox,oy,sc,dpr){sctx.save();sctx.strokeStyle='rgba(8,14,22,.6)';sctx.lineWidth=1.2*dpr;
   for(const d of [0,1.4,6.4,20]){sctx.beginPath();for(let x=X0;x<=X0+SW*PX+0.01;x+=0.5){const px=ox+((x-X0)/PX)*sc,py=oy+((surf(x)+d-Y0)/PX)*sc;if(x===X0)sctx.moveTo(px,py);else sctx.lineTo(px,py);}sctx.stroke();}
   sctx.restore();}
-function isoLabels(look,ox,oy,sc,dpr){const xc=(-0.7*FR-X0)/PX-0.5;
+function isoLabels(look,ox,oy,sc,dpr){const xc=(-0.7*FR-X0)/PX-0.5,h=13*dpr,placed=[];
   sctx.save();sctx.shadowBlur=0;sctx.textAlign='center';sctx.textBaseline='middle';sctx.font='700 '+Math.round(10*dpr)+'px "Atkinson Hyperlegible",sans-serif';
-  for(let k=0;k<ISO.length;k++){const S=ISO[k];let best=-1;
-    for(let n=0;n<S.length;n+=4){const xa=S[n],xb=S[n+2];if((xa-xc)*(xb-xc)>0||xa===xb)continue;const y=S[n+1]+(S[n+3]-S[n+1])*(xc-xa)/(xb-xa);if(y>best)best=y;}
-    if(best<0)continue;let lx=xc;const lim=(Math.min(sl.height,oy+SH*sc)-64*dpr-oy)/sc-0.5;
+  const deepest=(S,xq)=>{let best=-1;for(let n=0;n<S.length;n+=4){const xa=S[n],xb=S[n+2];if((xa-xq)*(xb-xq)>0||xa===xb)continue;const y=S[n+1]+(S[n+3]-S[n+1])*(xq-xa)/(xb-xa);if(y>best)best=y;}return best;};
+  for(let k=0;k<ISO.length;k++){const S=ISO[k],t=String(Math.round(LEVELS[k]*100)),w=sctx.measureText(t).width+8*dpr;
+    /* A label that would sit on one already drawn (90 and 80 on the wider cones) steps toward the center along its line. */
+    let lx=xc,best=deepest(S,xc);
+    for(let n=1;n<6&&best>=0&&placed.some(b=>Math.abs(b.x-(ox+(lx+0.5)*sc))<(b.w+w)/2+2*dpr&&Math.abs(b.y-(oy+(best+0.5)*sc))<h+2*dpr);n++){
+      const xq=xc+n*(w+4*dpr)/sc,y=deepest(S,xq);if(y<0)break;lx=xq;best=y;}
+    if(best<0)continue;const lim=(Math.min(sl.height,oy+SH*sc)-64*dpr-oy)/sc-0.5;
     if(best>lim){const xm=(0-X0)/PX-0.5;let bx=-1;for(let n=0;n<S.length;n+=4){const ya=S[n+1],yb=S[n+3];if((ya-lim)*(yb-lim)>0||ya===yb)continue;const x=S[n]+(S[n+2]-S[n])*(lim-ya)/(yb-ya);if(x<xm&&x>bx)bx=x;}if(bx<0)continue;lx=bx;best=lim;}
-    const px=ox+(lx+0.5)*sc,py=oy+(best+0.5)*sc,t=String(Math.round(LEVELS[k]*100)),w=sctx.measureText(t).width+8*dpr,h=13*dpr;
+    const px=ox+(lx+0.5)*sc,py=oy+(best+0.5)*sc;placed.push({x:px,y:py,w});
     sctx.fillStyle='rgba(8,16,28,.88)';sctx.fillRect(px-w/2,py-h/2,w,h);sctx.strokeStyle=look==='glow'?'#a6ecff':'#ffffff';sctx.lineWidth=1*dpr;sctx.strokeRect(px-w/2,py-h/2,w,h);
     sctx.fillStyle='#ffffff';sctx.fillText(t,px,py+0.5*dpr);}
   sctx.restore();}
