@@ -178,7 +178,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
       <div class="read">
         <div class="row"><span id="rBaseLab">Tumor base, planned 2.0 mm deep</span><b id="rBase">2.50 Gy</b></div>
         <div class="row"><span id="rSurfLab">Skin surface</span><b id="rSurf">3.00 Gy</b></div>
-        <div class="row"><span id="rTotalLab">Course total at tumor base (20 visits)</span><b id="rTotal">50.0 Gy</b></div>
+        <div class="row"><span id="rTotalLab">Course total at tumor base (20 visits)</span><b id="rTotal">50 Gy</b></div>
         <div class="row tech"><span>Dose drops to half at</span><b id="rHalf">8.2 mm</b></div>
         <div class="row tech"><span>Beam width at skin</span><b id="rWidth">20.0 mm</b></div>
         <div class="row"><span>Beam on time per visit (clinic table)</span><b id="rTime">1.25 min</b></div>
@@ -330,7 +330,7 @@ function readout(){
   $('rBase').textContent=fmt(bGy,2)+' Gy';
   $('rBase').className=Math.abs(bGy-RX_GY)>0.04?'warn':'';
   $('rSurf').textContent=fmt(surf*DSURF,2)+' Gy';
-  $('rTotal').textContent=fmt(bGy*FX,1)+' Gy';
+  $('rTotal').textContent=fmt(bGy*FX,0)+' Gy';
   const est=RX_D>4+1e-9,bt=beamTime(CONE,RX_D,RX_GY);
   $('rBaseLab').textContent='Tumor base, planned '+fmt(RX_D,1)+' mm deep';
   $('rSurfLab').textContent=est?'Skin surface (estimated)':'Skin surface';
@@ -548,7 +548,7 @@ sl.addEventListener('pointerdown',e=>{
   const idx=j*SW+i,t=typeG[idx],rel=relG[idx];const names=['Air','Air','Applicator wall','Epidermis','Dermis','Fat','Muscle','Bone','Bone','Tumor','Connective tissue'];
   const g=geom2(),x=X0+(i+0.5)*PX,y=Y0+(j+0.5)*PX,s=surf(x);
   let html;
-  if(isTissue(t)){html='<b>'+Math.round(rel*100)+'% of surface dose</b>'+names[t]+', '+fmt(y-s,1)+' mm deep<br>'+fmt(rel*DSURF,2)+' Gy per visit, '+fmt(rel*DSURF*FX,1)+' Gy total';}
+  if(isTissue(t)){html='<b>'+Math.round(rel*100)+'% of surface dose</b>'+names[t]+', '+fmt(y-s,1)+' mm deep<br>'+fmt(rel*DSURF,2)+' Gy per visit, '+fmt(rel*DSURF*FX,0)+' Gy total';}
   else if(t===1&&rel>0){html='<b>Beam in air</b>Strength '+Math.round(rel*100)+'% of the skin entry value';}
   else html='<b>'+names[t]+'</b>No dose here';
   pr.innerHTML=html;pr.style.display='block';$('hint').style.display='none';probePt={i,j};
