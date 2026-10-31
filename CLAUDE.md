@@ -161,7 +161,7 @@ Work in this order. One item per session unless Steve says otherwise.
 
 Steve's decisions: beam on time uses the 6 Gy column scaled by dose / 6, so the 20 mm cone at 2 mm shows 1.25 min where the printed 2.5 Gy column says 1.26. Isodose lines stay as percent of skin surface dose. Inputs are number boxes with − and + buttons. Covering cones are marked and the smallest ringed; the app never switches cones by itself.
 
-- Inputs in the panel: ultrasound depth (0.5 to 6.0 mm, 0.1 steps), lesion diameter (3 to 40 mm, default 10 mm), margin (default 5 mm, 3 to 10 mm), and dose as a two way choice: 2.5 Gy × 20 visits (50 Gy, default) or 3 Gy × 15 visits (45 Gy). No separate visits input.
+- Inputs in the panel: lesion depth from ultrasound, labeled "US lesion depth" (Steve, October 2026) (0.5 to 6.0 mm, 0.1 steps), lesion diameter (3 to 40 mm, default 10 mm), margin (default 5 mm, 3 to 10 mm), and dose as a two way choice: 2.5 Gy × 20 visits (50 Gy, default) or 3 Gy × 15 visits (45 Gy). No separate visits input.
 - Prescription depth follows the ultrasound depth. The dashed line, tumor base, readout and isodose normalization all update.
 - Tumor shape scales to the diameter and depth while keeping the lobulated look.
 - Beam on time: interpolate the 6 Gy table linearly between 0.5 mm rows, scale by dose / 6. Past 4.0 mm, show "Beyond the clinic table" instead of a time, and mark depth dose there as estimated.
