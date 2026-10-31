@@ -2,8 +2,8 @@
    Under the cone: 50 kV Xstrahl RADiant Aura, closed acrylic cones at 6 cm. See CLAUDE.md, Physics model.
    Dose is relative, normalized to the central axis skin surface with the applicator touching.
    Teaching model only, never for prescription or treatment calculation. */
-export const SSD=60, RX_D=2, RX_GY=2.5;
-export let FR=10, CONE=20, PDD_RX=0.834, DSURF=3;
+export const SSD=60;
+export let FR=10, CONE=20, RX_D=2, RX_GY=2.5, PDD_RX=0.834, DSURF=3;
 /* Clinic SRT treatment time table (50 kV, 6 cm FSD), 6 Gy column, depths 0 to 4 mm in 0.5 mm steps.
    Depth dose at each depth = beam on time at the surface / beam on time at that depth.
    beam: minutes for 2.5 Gy at 2 mm. mu: beam hardening fit used past 4 mm. tail: out of field scatter relative to the 20 mm cone. */
@@ -25,9 +25,12 @@ function buildCone(){FR=CONE/2;const c=CONES[CONE],xs=[],ys=[];
   for(let i=0;i<9;i++){const d=i*0.5;xs.push(d);ys.push((c.t[0]/c.t[i])/Math.pow(SSD/(SSD+d),2));}
   const f=pchip(xs,ys),g=d=>c.mu*d/(1+KH*d),A4=ys[8];
   for(let n=0;n<AG.length;n++){const d=n*0.05;AG[n]=d<=4?f(d):A4*Math.exp(-(g(d)-g(4)));}
-  PDD_RX=doseAt(0,SSD+RX_D,RX_D);DSURF=RX_GY/PDD_RX;}
+  scaleRx();}
+function scaleRx(){PDD_RX=doseAt(0,SSD+RX_D,RX_D);DSURF=RX_GY/PDD_RX;}
 /* Switch the applicator (10, 15, 20, 30 or 40 mm) and rebuild the attenuation grid and prescription scaling. */
 export function setCone(c){CONE=c;buildCone();}
+/* Prescription: gy (Gy per visit) at depth (mm) on the central axis, applicator touching. Dose in Gy anywhere = relative dose × DSURF. */
+export function setRx(depth,gy){RX_D=depth;RX_GY=gy;scaleRx();}
 export function att(d){if(d<=0)return 1;const u=d/0.05,n=Math.floor(u);if(n>=AG.length-1)return AG[AG.length-1]*Math.exp(-0.035*(d-80));const f=u-n;return AG[n]*(1-f)+AG[n+1]*f;}
 export function pdd0(d){return Math.pow(SSD/(SSD+d),2)*att(d);}
 
@@ -48,5 +51,15 @@ export function isoDepth(frac,gap=0,step=0.05){const s=doseAt(0,SSD+gap,0);
 export function offAxis(r,dd){return doseAt(Math.abs(r),SSD+dd,dd)/doseAt(0,SSD+dd,dd);}
 /* Distance from the center where offAxis first falls to frac, searched outward in 0.01 mm steps up to max. */
 export function edgeAt(frac,dd,max){for(let r=0;r<max;r+=0.01){if(offAxis(r,dd)<=frac)return r;}return max;}
+
+/* Beam on time in minutes for gy at depth (mm): the 6 Gy clinic column, linear between 0.5 mm rows, scaled by gy / 6.
+   Returns null past 4.0 mm, where the clinic table stops. */
+export function beamTime(cone,depth,gy){if(depth<0||depth>4+1e-9)return null;
+  const t=CONES[cone].t,u=Math.min(depth,4)/0.5,i=Math.min(7,Math.floor(u)),f=u-i;return (t[i]*(1-f)+t[i+1]*f)*gy/6;}
+export const CONE_SIZES=Object.keys(CONES).map(Number).sort((a,b)=>a-b);
+/* Cone coverage: lesion + 2 × margin (mm) against each cone diameter. A cone covers it when it is at least that wide.
+   fits: covering cones, smallest first. best: the smallest, or null if none covers. */
+export function coverage(lesion,margin){const need=lesion+2*margin,fits=CONE_SIZES.filter(c=>c>=need-1e-9);
+  return {need,fits,best:fits.length?fits[0]:null};}
 
 buildCone();

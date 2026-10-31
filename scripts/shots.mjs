@@ -26,6 +26,10 @@ const LOOKS = ['heat', 'glow', 'photons'];
 const STATES = [{ id: 'slice-heat-c20', look: 'heat', cone: 20 }];
 for (const look of LOOKS) for (const cone of [10, 40]) STATES.push({ id: `slice-${look}-c${cone}`, look, cone });
 STATES.push({ id: 'room-3d', view: '3d' });
+// Lesion inputs (skipped on versions without them): ultrasound depth, diameter, margin (mm), dose per visit, cone, tumor outline on.
+STATES.push({ id: 'lesion-d3.4-w18-m5-3gy-c30', look: 'heat', cone: 30, les: { usDepth: 3.4, usDiam: 18, usMargin: 5 }, rx: 3 });
+STATES.push({ id: 'lesion-d5.0-w40-m5-c40', look: 'heat', cone: 40, les: { usDepth: 5, usDiam: 40, usMargin: 5 } });
+STATES.push({ id: 'lesion-d0.5-w3-m3-c10', look: 'heat', cone: 10, les: { usDepth: 0.5, usDiam: 3, usMargin: 3 } });
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
   '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml' };
@@ -68,6 +72,12 @@ for (const size of SIZES) {
     if (st.view === '3d') {
       await page.click('#v3d');
     } else {
+      if (st.les) {
+        if (!(await page.$('#usDepth'))) { await page.close(); continue; }
+        for (const [id, v] of Object.entries(st.les)) { await page.fill(`#${id}`, String(v)); await page.dispatchEvent(`#${id}`, 'change'); }
+        if (st.rx) await page.click(`[data-rx="${st.rx}"]`);
+        await page.check('#outline');
+      }
       if (st.cone !== 20) await page.click(`[data-cone="${st.cone}"]`);
       if (st.look !== 'heat') await page.click(`[data-look="${st.look}"]`);
     }

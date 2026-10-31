@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 // DSURF and FR are live bindings: they follow setCone.
-import { SSD, CONES, DSURF, FR, setCone, pchip, doseAt, isoDepth, offAxis, edgeAt } from '../physics.js';
+import { SSD, CONES, DSURF, FR, setCone, setRx, pchip, doseAt, isoDepth, offAxis, edgeAt, beamTime, coverage } from '../physics.js';
 
 // Clinic table copied from CLAUDE.md on its own, so a typo in physics.js (or here) fails the tests.
 // t: beam on time in minutes for 6 Gy at 0.0 to 4.0 mm. beam: minutes for 2.5 Gy at 2 mm.
@@ -111,4 +111,65 @@ test('20 mm cone: edge width at 5 mm reads 1.3 mm', () => {
 test('20 mm cone: out of field at the skin, 1 cm past the edge, is about 0.6% (± 0.1)', () => {
   setCone(20);
   near(100 * offAxis(edgeAt(0.5, 0, FR + 12) + 10, 0), 0.6, 0.1, 'out of field');
+});
+
+// Roadmap item 1: beam on time from the clinic table and the cone coverage rule.
+for (const c of SIZES) {
+  test(`${c} mm cone: beam on time is the 6 Gy table scaled by dose / 6, linear between 0.5 mm rows`, () => {
+    const t = TABLE[c].t;
+    for (const gy of [2.5, 3]) {
+      DEPTHS.forEach((d, i) => near(beamTime(c, d, gy), t[i] * gy / 6, 1e-12, `${gy} Gy at ${d} mm`));
+      near(beamTime(c, 1.25, gy), (t[2] + t[3]) / 2 * gy / 6, 1e-12, `${gy} Gy at 1.25 mm`);
+      near(beamTime(c, 3.4, gy), (0.2 * t[6] + 0.8 * t[7]) * gy / 6, 1e-12, `${gy} Gy at 3.4 mm`);
+    }
+  });
+
+  test(`${c} mm cone: beam on time stops past 4.0 mm, where the clinic table ends`, () => {
+    near(beamTime(c, 4, 2.5), TABLE[c].t[8] * 2.5 / 6, 1e-12, 'at 4.0 mm');
+    near(beamTime(c, 3.9 + 0.1, 2.5), TABLE[c].t[8] * 2.5 / 6, 1e-12, 'at 3.9 + 0.1 mm');
+    for (const d of [4.1, 5, 6]) assert.equal(beamTime(c, d, 2.5), null, `${d} mm`);
+  });
+
+  test(`${c} mm cone: 2.5 Gy at 2 mm agrees with the printed beam column within 0.01 min`, () => {
+    near(beamTime(c, 2, 2.5), TABLE[c].beam, 0.01, 'beam on time');
+  });
+
+  test(`${c} mm cone: prescription follows the ultrasound depth and dose per visit`, () => {
+    setCone(c);
+    try {
+      for (const gy of [2.5, 3]) for (const d of [0.5, 2, 3.4, 4, 6]) {
+        setRx(d, gy);
+        near(doseAt(0, SSD + d, d) * DSURF, gy, 1e-9, `${gy} Gy at ${d} mm`);
+      }
+      setRx(2, 3);
+      near(doseAt(0, SSD, 0) * DSURF, 3 * TABLE[c].t[4] / TABLE[c].t[0], 0.01, 'skin dose for 3 Gy at 2 mm');
+    } finally { setRx(2, 2.5); }
+  });
+}
+
+test('cone coverage: lesion + 2 × margin, a cone covers it when at least that wide', () => {
+  assert.deepEqual(coverage(10, 5), { need: 20, fits: [20, 30, 40], best: 20 });
+  assert.deepEqual(coverage(10.1, 5), { need: 20.1, fits: [30, 40], best: 30 });
+  assert.deepEqual(coverage(12, 5), { need: 22, fits: [30, 40], best: 30 });
+  assert.deepEqual(coverage(3, 3), { need: 9, fits: [10, 15, 20, 30, 40], best: 10 });
+  assert.deepEqual(coverage(4, 3), { need: 10, fits: [10, 15, 20, 30, 40], best: 10 });
+  assert.deepEqual(coverage(30, 5), { need: 40, fits: [40], best: 40 });
+  assert.deepEqual(coverage(31, 5), { need: 41, fits: [], best: null });
+  assert.deepEqual(coverage(40, 10), { need: 60, fits: [], best: null });
+});
+
+test('switching cones keeps the current prescription', () => {
+  try {
+    for (const [d, gy] of [[3.4, 3], [0.5, 2.5], [5.5, 3]]) {
+      setRx(d, gy);
+      for (const c of SIZES) { setCone(c); near(doseAt(0, SSD + d, d) * DSURF, gy, 1e-9, `${c} mm cone, ${gy} Gy at ${d} mm`); }
+    }
+  } finally { setRx(2, 2.5); setCone(20); }
+});
+
+test('beam on time and coverage allow for float error at the limits', () => {
+  near(beamTime(20, 4 + 5e-10, 2.5), TABLE[20].t[8] * 2.5 / 6, 1e-9, 'just over 4.0 mm');
+  assert.equal(beamTime(20, 4 + 1e-6, 2.5), null);
+  assert.equal(coverage(10, 5 + 1e-10).best, 20);
+  assert.equal(coverage(10, 5 + 1e-6).best, 30);
 });

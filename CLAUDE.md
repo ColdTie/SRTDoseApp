@@ -119,7 +119,7 @@ Lengthwise cut of the mid forearm, beam on the back of the forearm. Skin surface
 
 Sources: forearm skin about 1.2 to 1.7 mm by ultrasound; forearm subcutaneous fat about 5.6 to 6.3 mm.
 
-Tumor: nodular basal cell carcinoma, 12 mm wide, lobulated base, deepest point just above 2 mm. Pink with darker purple nests. Outline is a toggle, off by default.
+Tumor: nodular basal cell carcinoma, lobulated base. By default 12 mm wide with its deepest point just above 2 mm; it stretches to the lesion diameter and ultrasound depth inputs. Pink with darker purple nests. Outline is a toggle, off by default.
 
 ## Visual design rules
 
@@ -128,6 +128,7 @@ Tumor: nodular basal cell carcinoma, 12 mm wide, lobulated base, deepest point j
 - Heat map: Turbo colormap, stepped in 10% bands, color = `turbo(0.1 + 0.85 × band)`. Alpha ramps from 4% to 16% dose. Tissue colors muted (55% desaturated) in heat mode so color means dose.
 - Isodose lines 90, 80, 50, 20 drawn at screen resolution (marching squares), thin white with a dark edge, small boxed number labels on each line. Labels slide up their line if they would land on the color key.
 - Dashed line at the prescription depth.
+- Just above the skin: a thin white bracket at the field edge (the cone opening) and a pink dashed bracket for lesion plus margin.
 - Thin dark lines at layer boundaries (not pixel thick).
 - Depth ruler on the left: ticks and numbers at 1 to 5 mm only.
 - Color key: small stepped bar, bottom left of the slice, heat map only.
@@ -155,7 +156,9 @@ Tumor: nodular basal cell carcinoma, 12 mm wide, lobulated base, deepest point j
 
 Work in this order. One item per session unless Steve says otherwise.
 
-### 1. Lesion inputs from daily ultrasound (next)
+### 1. Lesion inputs from daily ultrasound (done, October 2026)
+
+Steve's decisions: beam on time uses the 6 Gy column scaled by dose / 6, so the 20 mm cone at 2 mm shows 1.25 min where the printed 2.5 Gy column says 1.26. Isodose lines stay as percent of skin surface dose. Inputs are number boxes with − and + buttons. Covering cones are marked and the smallest ringed; the app never switches cones by itself.
 
 - Inputs in the panel: ultrasound depth (0.5 to 6.0 mm, 0.1 steps), lesion diameter (3 to 40 mm), margin (default 5 mm, 3 to 10 mm), and dose as a two way choice: 2.5 Gy × 20 visits (50 Gy, default) or 3 Gy × 15 visits (45 Gy). No separate visits input.
 - Prescription depth follows the ultrasound depth. The dashed line, tumor base, readout and isodose normalization all update.
@@ -164,7 +167,7 @@ Work in this order. One item per session unless Steve says otherwise.
 - Cone coverage: lesion + 2 × margin compared with each cone diameter. Mark each cone button that covers it, and highlight the smallest cone that does. Show the field edge and margin on the slice.
 - Keep the disclaimer next to these inputs: "Reference only. Treatment uses the clinic's commissioned data and physicist."
 
-### 2. Body site presets
+### 2. Body site presets (next)
 
 - Presets: forearm (current), scalp, forehead, nose, ear, shin, back. Each sets skin, fat and bone depth and surface curvature.
 - Research thickness values from published ultrasound or MRI studies, cite each in Sources, and mark any estimate as an estimate.

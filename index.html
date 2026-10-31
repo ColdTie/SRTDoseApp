@@ -66,6 +66,22 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
 .toggle{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:15px;cursor:pointer}
 .toggle input{width:20px;height:20px;accent-color:var(--beam)}
 .seg5{grid-template-columns:repeat(5,1fr)}
+.seg2{grid-template-columns:repeat(2,1fr);margin-top:14px}
+.seg [data-cone]{position:relative}
+.seg [data-cone].fits::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--beam)}
+.seg [data-cone].best{box-shadow:inset 0 0 0 3px var(--beam)}
+.step{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.step+.step{margin-top:10px}
+.step label{font-weight:700;font-size:15px}
+.stepper{display:flex;flex:none;border:2px solid var(--ink);box-shadow:3px 3px 0 var(--shadow)}
+.stepper button{font:700 20px/1 "Atkinson Hyperlegible",sans-serif;width:44px;min-height:44px;padding:0;background:var(--panel);color:var(--ink);border:0;cursor:pointer}
+.stepper button:first-child{border-right:2px solid var(--ink)}
+.stepper button:last-child{border-left:2px solid var(--ink)}
+.stepper .val{display:flex;align-items:center;justify-content:center;gap:4px;width:92px;background:var(--chip)}
+.stepper input{width:3em;border:0;padding:0;background:transparent;color:var(--ink);font:700 19px/1 "Atkinson Hyperlegible",sans-serif;
+  font-variant-numeric:tabular-nums;text-align:right}
+.stepper .unit{font-size:14px;color:var(--muted)}
+.row b.small{font-size:15px;white-space:normal;text-align:right}
 .chk{width:100%;height:180px;display:block;border:2px solid var(--ink);background:#0e1b2c;margin-top:8px}
 .chknote{margin:6px 0 4px}
 .read{border:2px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);padding:4px 14px}
@@ -120,10 +136,22 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
     </section>
 
     <section>
+      <h2>Lesion and dose</h2>
+      <div class="step"><label for="usDepth">Ultrasound depth</label><div class="stepper"><button type="button" data-d="-1" aria-label="Less depth">−</button><span class="val"><input id="usDepth" type="text" inputmode="decimal" autocomplete="off" min="0.5" max="6" step="0.1" value="2.0"><span class="unit">mm</span></span><button type="button" data-d="1" aria-label="More depth">+</button></div></div>
+      <div class="step"><label for="usDiam">Lesion diameter</label><div class="stepper"><button type="button" data-d="-1" aria-label="Smaller diameter">−</button><span class="val"><input id="usDiam" type="text" inputmode="decimal" autocomplete="off" min="3" max="40" step="1" value="12.0"><span class="unit">mm</span></span><button type="button" data-d="1" aria-label="Larger diameter">+</button></div></div>
+      <div class="step"><label for="usMargin">Margin</label><div class="stepper"><button type="button" data-d="-1" aria-label="Smaller margin">−</button><span class="val"><input id="usMargin" type="text" inputmode="decimal" autocomplete="off" min="3" max="10" step="0.5" value="5.0"><span class="unit">mm</span></span><button type="button" data-d="1" aria-label="Larger margin">+</button></div></div>
+      <div class="seg seg2" role="group" aria-label="Dose per visit">
+        <button data-rx="2.5" data-visits="20" aria-pressed="true">2.50 Gy × 20 visits</button><button data-rx="3" data-visits="15" aria-pressed="false">3.00 Gy × 15 visits</button>
+      </div>
+      <p class="note" style="margin-top:12px">Reference only. Treatment uses the clinic’s commissioned data and physicist.</p>
+    </section>
+
+    <section>
       <h2>Applicator</h2>
       <div class="seg seg5" role="group" aria-label="Applicator size">
         <button data-cone="10" aria-pressed="false">10</button><button data-cone="15" aria-pressed="false">15</button><button data-cone="20" aria-pressed="true">20</button><button data-cone="30" aria-pressed="false">30</button><button data-cone="40" aria-pressed="false">40 mm</button>
       </div>
+      <p class="state" id="coverText"></p>
       <div class="only3d" id="spotControls">
         <div class="slider" style="margin-top:16px">
           <label for="along">Spot on forearm <output id="alongOut">Middle</output></label>
@@ -142,13 +170,14 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
     <section>
       <h2>Dose per visit</h2>
       <div class="read">
-        <div class="row"><span>Tumor base, planned 2 mm deep</span><b id="rBase">2.50 Gy</b></div>
-        <div class="row"><span>Skin surface</span><b id="rSurf">2.97 Gy</b></div>
-        <div class="row"><span>Course total at tumor base (20 visits)</span><b id="rTotal">50.0 Gy</b></div>
-        <div class="row"><span>Dose drops to half at</span><b id="rHalf">8 mm</b></div>
+        <div class="row"><span id="rBaseLab">Tumor base, planned 2.0 mm deep</span><b id="rBase">2.50 Gy</b></div>
+        <div class="row"><span id="rSurfLab">Skin surface</span><b id="rSurf">3.00 Gy</b></div>
+        <div class="row"><span id="rTotalLab">Course total at tumor base (20 visits)</span><b id="rTotal">50.0 Gy</b></div>
+        <div class="row"><span>Dose drops to half at</span><b id="rHalf">8.2 mm</b></div>
         <div class="row"><span>Beam width at skin</span><b id="rWidth">20.0 mm</b></div>
-        <div class="row"><span>Beam on time per visit (clinic table)</span><b id="rTime">1.26 min</b></div>
+        <div class="row"><span>Beam on time per visit (clinic table)</span><b id="rTime">1.25 min</b></div>
       </div>
+      <p class="state" id="rxNote" hidden>Past 4.0 mm the clinic table stops, so the depth dose and skin dose here are estimated.</p>
     </section>
 
     <section>
@@ -160,19 +189,24 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
     </section>
 
 
-    <p class="note">Teaching model only, not for treatment planning. Geometry follows the Xstrahl RADiant Aura (6 cm source distance, 10 to 40 mm acrylic applicators). Depth dose from 0 to 4 mm and beam on times come from the clinic's SRT treatment time table. Deeper dose, the beam edge and out of field scatter are estimates based on published low kV measurements. Tissue layers use average adult forearm values: skin 1.4 mm, fat 6 mm.</p>
+    <p class="note">Teaching model only, not for treatment planning. Geometry follows the Xstrahl RADiant Aura (6 cm source distance, 10 to 40 mm acrylic applicators). Depth dose from 0 to 4 mm and beam on times come from the clinic’s SRT treatment time table. Deeper dose, the beam edge and out of field scatter are estimates based on published low kV measurements. Tissue layers use average adult forearm values: skin 1.4 mm, fat 6 mm.</p>
   </aside>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script type="module">
-/* ---------- Beam model (mm): physics.js. FR, CONE and DSURF are live bindings that follow setCone. ---------- */
-import {SSD,RX_D,RX_GY,CONES,FR,CONE,DSURF,setCone,doseAt,isoDepth,offAxis,edgeAt} from './physics.js';
-const SSDU=6, T_SOFT=12, FX=20;
+/* ---------- Beam model (mm): physics.js. FR, CONE, RX_D, RX_GY and DSURF are live bindings that follow setCone and setRx. ---------- */
+import {SSD,RX_D,RX_GY,CONES,FR,CONE,DSURF,setCone,setRx,doseAt,isoDepth,offAxis,edgeAt,beamTime,coverage} from './physics.js';
+const SSDU=6, T_SOFT=12;
+let FX=20;
 const state={view:'3d',look:'heat',contact:0,along:0,angle:0,cut:true,outline:false};
-/* Nodular basal cell carcinoma: about 12 mm wide, lobulated base, deepest point just under the 2 mm prescription depth. */
-const LW=6;function lesionDepth(x){const u=x/LW;if(Math.abs(u)>=1)return -1;return Math.pow(1-u*u,0.45)*(1.55+0.2*Math.sin(x*1.35+0.4)+0.1*Math.sin(x*3.2))+0.05;}
+/* Lesion from today's ultrasound (mm). The prescription depth is the ultrasound depth. */
+const lesion={depth:2,diam:12,margin:5};
+/* Nodular basal cell carcinoma, lobulated base. Width is the lesion diameter; the deepest point sits just above the prescription
+   depth. The 12 mm, 2 mm default is the original drawing; other sizes stretch it. */
+let LW=6;function lesionDepth(x){const u=x/LW;if(Math.abs(u)>=1)return -1;const s=x*6/Math.max(6,LW);
+  return RX_D/2*(Math.pow(1-u*u,0.45)*(1.55+0.2*Math.sin(s*1.35+0.4)+0.1*Math.sin(s*3.2))+0.05);}
 const stage=document.getElementById('stage');
 const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -205,7 +239,26 @@ $('cut').addEventListener('change',e=>{state.cut=e.target.checked;update3D();});
 $('outline').addEventListener('change',e=>{state.outline=e.target.checked;});
 document.querySelectorAll('[data-cone]').forEach(b=>b.addEventListener('click',()=>{setCone(+b.dataset.cone);
   document.querySelectorAll('[data-cone]').forEach(x=>x.setAttribute('aria-pressed',x===b));
-  if(typeof sizeSlice==='function'){img=null;sizeSlice();}onChange();drawChecks();}));
+  if(typeof sizeSlice==='function'){img=null;sizeSlice();}clearProbe();cover();onChange();drawChecks();}));
+document.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',()=>{FX=+b.dataset.visits;setRx(RX_D,+b.dataset.rx);clearProbe();
+  document.querySelectorAll('[data-rx]').forEach(x=>x.setAttribute('aria-pressed',x===b));onChange();}));
+/* Lesion inputs: number boxes with − and + buttons, clamped to their range and kept to 0.1 mm. A decimal comma reads as a point. */
+const LKEY={usDepth:'depth',usDiam:'diam',usMargin:'margin'},num=s=>parseFloat(String(s).replace(',','.'));
+function lesionIn(el,v,commit){const k=LKEY[el.id];if(!isFinite(v))v=lesion[k];
+  v=Math.round(Math.min(+el.max,Math.max(+el.min,v))*10)/10;if(commit)el.value=v.toFixed(1);
+  if(v!==lesion[k]){lesion[k]=v;applyLesion();}}
+document.querySelectorAll('.stepper').forEach(s=>{const el=s.querySelector('input');
+  s.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>lesionIn(el,lesion[LKEY[el.id]]+b.dataset.d*el.step,true)));
+  el.addEventListener('input',()=>{const v=num(el.value);if(isFinite(v))lesionIn(el,v,false);});
+  el.addEventListener('change',()=>lesionIn(el,num(el.value),true));});
+function applyLesion(){setRx(lesion.depth,RX_GY);LW=lesion.diam/2;clearProbe();cover();img=null;sizeSlice();onChange();}
+/* The tap readout describes one setting; hide it when the setting changes. */
+function clearProbe(){$('probe').style.display='none';probePt=null;}
+/* Cone coverage: a dot on each cone at least as wide as lesion + 2 × margin, a ring on the smallest. */
+function cover(){const c=coverage(lesion.diam,lesion.margin);
+  document.querySelectorAll('[data-cone]').forEach(b=>{const s=+b.dataset.cone;b.classList.toggle('fits',c.fits.includes(s));b.classList.toggle('best',s===c.best);});
+  $('coverText').textContent='Lesion plus margins: '+fmt(c.need,1)+' mm. '+(c.best===null?'No cone is wide enough.':
+    'Dotted cones cover it; the ringed one is the smallest that does.'+(c.fits.includes(CONE)?'':' The '+CONE+' mm cone is too small.'));}
 /* ---------- Accuracy check charts ---------- */
 const REF_ESTEYA=[[1,92.4],[2,86.2],[3,80.4],[4,74.6],[5,70.9],[10,51.3]],REF_XOFT=[[1,88.1],[2,78.0],[3,69.4],[5,55.6]];
 function chartBase(id){const c=$(id),dpr=Math.min(2,window.devicePixelRatio||1),w=c.clientWidth*dpr,h=c.clientHeight*dpr;if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
@@ -258,8 +311,14 @@ function readout(){
   $('rBase').className=Math.abs(bGy-RX_GY)>0.04?'warn':'';
   $('rSurf').textContent=fmt(surf*DSURF,2)+' Gy';
   $('rTotal').textContent=fmt(bGy*FX,1)+' Gy';
+  const est=RX_D>4+1e-9,bt=beamTime(CONE,RX_D,RX_GY);
+  $('rBaseLab').textContent='Tumor base, planned '+fmt(RX_D,1)+' mm deep';
+  $('rSurfLab').textContent=est?'Skin surface (estimated)':'Skin surface';
+  $('rTotalLab').textContent='Course total at tumor base ('+FX+' visits)';
+  $('rTime').textContent=bt===null?'Beyond the clinic table':fmt(Math.round(bt*100+1e-7)/100,2)+' min';$('rTime').classList.toggle('small',bt===null);
+  $('rxNote').hidden=!est;
   $('rHalf').textContent=fmt(half,1)+' mm';
-  $('rWidth').textContent=fmt(2*FR*(SSD+gap)/SSD,1)+' mm';$('rTime').textContent=fmt(CONES[CONE].beam,2)+' min';
+  $('rWidth').textContent=fmt(2*FR*(SSD+gap)/SSD,1)+' mm';
   $('alongOut').textContent=state.along===0?'Middle':(Math.abs(state.along)+' cm toward '+(state.along<0?'wrist':'elbow'));
   $('angleOut').textContent=state.angle+'°';
 }
@@ -271,7 +330,7 @@ const sl=$('slice'),sctx=sl.getContext('2d');
 const buf=document.createElement('canvas');const bctx=buf.getContext('2d');
 let img,relG,typeG,dep,rxMark,noise,layerG,edgeG;
 function sizeSlice(){const w=Math.max(1,stage.clientWidth),h=Math.max(1,stage.clientHeight),asp=h/w;
-  const wmm=Math.max(asp>1.05?32:(asp>0.8?37:44),2*FR+12);const nSW=Math.round(wmm/PX);const nSH=Math.max(50,Math.min(230,Math.round(nSW*asp)));
+  const wmm=Math.max(asp>1.05?32:(asp>0.8?37:44),2*FR+12,Math.min(52,2*(LW+lesion.margin)+6));const nSW=Math.round(wmm/PX);const nSH=Math.max(50,Math.min(230,Math.round(nSW*asp)));
   if(nSW===SW&&nSH===SH&&img)return;SW=nSW;SH=nSH;X0=-wmm/2;buf.width=SW;buf.height=SH;img=bctx.createImageData(SW,SH);
   relG=new Float32Array(SW*SH);typeG=new Uint8Array(SW*SH);layerG=new Uint8Array(SW*SH);edgeG=new Uint8Array(SW*SH);dep=new Float32Array(SW*SH);rxMark=new Uint8Array(SW*SH);
   noise=new Float32Array(SW*SH);for(let j=0;j<SH;j++)for(let i=0;i<SW;i++)noise[j*SW+i]=0.93+0.14*hn(i,j);computeSlice();}
@@ -410,7 +469,11 @@ function drawSlice(dt){
     sctx.save();sctx.globalAlpha=look==='heat'?0.92:0.55;
     for(const sgn of [-1,1]){sctx.beginPath();sctx.moveTo(wx(sgn*Rt),wy(yT));sctx.lineTo(wx(sgn*Re),wy(yE));sctx.lineTo(wx(sgn*(Re+T)),wy(yE));sctx.lineTo(wx(sgn*(Rt+T)),wy(yT));sctx.closePath();
       const gr=sctx.createLinearGradient(wx(sgn*Re),0,wx(sgn*(Re+T)),0);gr.addColorStop(0,'#e4eef5');gr.addColorStop(1,'#9fb1c0');sctx.fillStyle=gr;sctx.fill();}
-    sctx.restore();}
+    sctx.restore();
+    /* Brackets just above the skin: field edge (white, the cone opening) and lesion plus margin (pink, dashed). */
+    const brk=(h,y,col,dash)=>{const p=new Path2D();p.moveTo(wx(-h),wy(surf(h)));p.lineTo(wx(-h),wy(y));p.lineTo(wx(h),wy(y));p.lineTo(wx(h),wy(surf(h)));
+      sctx.setLineDash(dash);sctx.strokeStyle='rgba(8,16,28,.6)';sctx.lineWidth=3.2*dpr;sctx.stroke(p);sctx.strokeStyle=col;sctx.lineWidth=1.4*dpr;sctx.stroke(p);};
+    sctx.save();sctx.lineJoin='miter';brk(Re,yE-0.8,'#ffffff',[]);brk(LW+lesion.margin,yE-1.6,'#ff7ad9',[4*dpr,3*dpr]);sctx.restore();}
   if(probePt&&probePt.i<SW&&probePt.j<SH){const cx=ox+(probePt.i+0.5)*sc,cy=oy+(probePt.j+0.5)*sc,a=7*dpr,g2=2.5*dpr;sctx.fillStyle='#ffffff';sctx.strokeStyle='#0e1b2c';sctx.lineWidth=3*dpr;
     sctx.beginPath();sctx.moveTo(cx-a,cy);sctx.lineTo(cx-g2,cy);sctx.moveTo(cx+g2,cy);sctx.lineTo(cx+a,cy);sctx.moveTo(cx,cy-a);sctx.lineTo(cx,cy-g2);sctx.moveTo(cx,cy+g2);sctx.lineTo(cx,cy+a);sctx.stroke();
     sctx.strokeStyle='#ffffff';sctx.lineWidth=1.5*dpr;sctx.stroke();}
@@ -643,7 +706,7 @@ function loop(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
 /* ---------- init ---------- */
 const origOnChange=onChange;
 onChange=function(){origOnChange();computeSlice();};
-resize();update3D();readout();computeSlice();setLook('heat');setView('2d',true);drawChecks();
+resize();update3D();readout();computeSlice();cover();setLook('heat');setView('2d',true);drawChecks();
 {const cols=[];for(let k=1;k<10;k++){const c=heatC((k+0.5)/10).map(v=>Math.round(v*255)).join(',');cols.push('rgb('+c+') '+((k-1)/9*100).toFixed(2)+'%','rgb('+c+') '+(k/9*100).toFixed(2)+'%');}
   $('keybar').style.background='linear-gradient(90deg,'+cols.join(',')+')';
   $('keylab').innerHTML=[10,30,50,70].map(v=>'<span style="position:absolute;left:'+((v-10)/90*100)+'%;transform:translateX(-50%)">'+v+'</span>').join('')+'<span style="position:absolute;right:0">100%</span>';}
