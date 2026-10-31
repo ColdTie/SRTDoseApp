@@ -119,7 +119,7 @@ Lengthwise cut of the mid forearm, beam on the back of the forearm. Skin surface
 
 Sources: forearm skin about 1.2 to 1.7 mm by ultrasound; forearm subcutaneous fat about 5.6 to 6.3 mm.
 
-Tumor: nodular basal cell carcinoma, lobulated base. By default 12 mm wide with its deepest point just above 2 mm; it stretches to the lesion diameter and ultrasound depth inputs. Pink with darker purple nests. Outline is a toggle, off by default.
+Tumor: nodular basal cell carcinoma, lobulated base. By default 10 mm wide (with 5 mm margins it just fits the 20 mm cone) with its deepest point just above 2 mm; it stretches to the lesion diameter and ultrasound depth inputs. Pink with darker purple nests. Outline is a toggle, on by default.
 
 ## Visual design rules
 
@@ -136,6 +136,7 @@ Tumor: nodular basal cell carcinoma, lobulated base. By default 12 mm wide with 
 - Applicator walls: smooth angled vector lines with acrylic shading, semi transparent in X ray glasses and Photons.
 - No "Applicator" label, no "Tap the slice" hint on the slice.
 - No title or subtitle at the top of the panel, and no "Gap above skin" control (Steve removed both, October 2026). The model still supports an air gap; the app always shows the applicator touching.
+- Panel order: Lesion and dose, Applicator, Dose per visit, Accuracy check, then How the dose looks (look buttons and tumor outline toggle) at the bottom (Steve, October 2026).
 - Pixel art feel: dose and tissue drawn on a low resolution buffer (0.4 mm pixels) scaled up with no smoothing. Lines, labels and walls drawn crisp on top.
 
 ## Copy rules
@@ -160,7 +161,7 @@ Work in this order. One item per session unless Steve says otherwise.
 
 Steve's decisions: beam on time uses the 6 Gy column scaled by dose / 6, so the 20 mm cone at 2 mm shows 1.25 min where the printed 2.5 Gy column says 1.26. Isodose lines stay as percent of skin surface dose. Inputs are number boxes with − and + buttons. Covering cones are marked and the smallest ringed; the app never switches cones by itself.
 
-- Inputs in the panel: ultrasound depth (0.5 to 6.0 mm, 0.1 steps), lesion diameter (3 to 40 mm), margin (default 5 mm, 3 to 10 mm), and dose as a two way choice: 2.5 Gy × 20 visits (50 Gy, default) or 3 Gy × 15 visits (45 Gy). No separate visits input.
+- Inputs in the panel: ultrasound depth (0.5 to 6.0 mm, 0.1 steps), lesion diameter (3 to 40 mm, default 10 mm), margin (default 5 mm, 3 to 10 mm), and dose as a two way choice: 2.5 Gy × 20 visits (50 Gy, default) or 3 Gy × 15 visits (45 Gy). No separate visits input.
 - Prescription depth follows the ultrasound depth. The dashed line, tumor base, readout and isodose normalization all update.
 - Tumor shape scales to the diameter and depth while keeping the lobulated look.
 - Beam on time: interpolate the 6 Gy table linearly between 0.5 mm rows, scale by dose / 6. Past 4.0 mm, show "Beyond the clinic table" instead of a time, and mark depth dose there as estimated.

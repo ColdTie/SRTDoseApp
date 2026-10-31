@@ -125,20 +125,9 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
 
   <aside class="panel">
     <section>
-      <h2>How the dose looks</h2>
-      <div class="seg" role="group" aria-label="Dose look">
-        <button data-look="heat" aria-pressed="true">Heat map</button>
-        <button data-look="glow" aria-pressed="false">X ray glasses</button>
-        <button data-look="photons" aria-pressed="false">Photons</button>
-      </div>
-      <p class="state" id="lookText"></p>
-      <label class="toggle"><input type="checkbox" id="outline"> Show tumor outline</label>
-    </section>
-
-    <section>
       <h2>Lesion and dose</h2>
       <div class="step"><label for="usDepth">Ultrasound depth</label><div class="stepper"><button type="button" data-d="-1" aria-label="Less depth">−</button><span class="val"><input id="usDepth" type="text" inputmode="decimal" autocomplete="off" min="0.5" max="6" step="0.1" value="2.0"><span class="unit">mm</span></span><button type="button" data-d="1" aria-label="More depth">+</button></div></div>
-      <div class="step"><label for="usDiam">Lesion diameter</label><div class="stepper"><button type="button" data-d="-1" aria-label="Smaller diameter">−</button><span class="val"><input id="usDiam" type="text" inputmode="decimal" autocomplete="off" min="3" max="40" step="1" value="12.0"><span class="unit">mm</span></span><button type="button" data-d="1" aria-label="Larger diameter">+</button></div></div>
+      <div class="step"><label for="usDiam">Lesion diameter</label><div class="stepper"><button type="button" data-d="-1" aria-label="Smaller diameter">−</button><span class="val"><input id="usDiam" type="text" inputmode="decimal" autocomplete="off" min="3" max="40" step="1" value="10.0"><span class="unit">mm</span></span><button type="button" data-d="1" aria-label="Larger diameter">+</button></div></div>
       <div class="step"><label for="usMargin">Margin</label><div class="stepper"><button type="button" data-d="-1" aria-label="Smaller margin">−</button><span class="val"><input id="usMargin" type="text" inputmode="decimal" autocomplete="off" min="3" max="10" step="0.5" value="5.0"><span class="unit">mm</span></span><button type="button" data-d="1" aria-label="Larger margin">+</button></div></div>
       <div class="seg seg2" role="group" aria-label="Dose per visit">
         <button data-rx="2.5" data-visits="20" aria-pressed="true">2.50 Gy × 20 visits</button><button data-rx="3" data-visits="15" aria-pressed="false">3.00 Gy × 15 visits</button>
@@ -188,6 +177,17 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
       <p class="note chknote" id="chkProfNote"></p>
     </section>
 
+    <section>
+      <h2>How the dose looks</h2>
+      <div class="seg" role="group" aria-label="Dose look">
+        <button data-look="heat" aria-pressed="true">Heat map</button>
+        <button data-look="glow" aria-pressed="false">X ray glasses</button>
+        <button data-look="photons" aria-pressed="false">Photons</button>
+      </div>
+      <p class="state" id="lookText"></p>
+      <label class="toggle"><input type="checkbox" id="outline" autocomplete="off" checked> Show tumor outline</label>
+    </section>
+
 
     <p class="note">Teaching model only, not for treatment planning. Geometry follows the Xstrahl RADiant Aura (6 cm source distance, 10 to 40 mm acrylic applicators). Depth dose from 0 to 4 mm and beam on times come from the clinic’s SRT treatment time table. Deeper dose, the beam edge and out of field scatter are estimates based on published low kV measurements. Tissue layers use average adult forearm values: skin 1.4 mm, fat 6 mm.</p>
   </aside>
@@ -200,12 +200,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--beam);outline-o
 import {SSD,RX_D,RX_GY,CONES,FR,CONE,DSURF,setCone,setRx,doseAt,isoDepth,offAxis,edgeAt,beamTime,coverage} from './physics.js';
 const SSDU=6, T_SOFT=12;
 let FX=20;
-const state={view:'3d',look:'heat',contact:0,along:0,angle:0,cut:true,outline:false};
+const state={view:'3d',look:'heat',contact:0,along:0,angle:0,cut:true,outline:true};
 /* Lesion from today's ultrasound (mm). The prescription depth is the ultrasound depth. */
-const lesion={depth:2,diam:12,margin:5};
+const lesion={depth:2,diam:10,margin:5};
 /* Nodular basal cell carcinoma, lobulated base. Width is the lesion diameter; the deepest point sits just above the prescription
-   depth. The 12 mm, 2 mm default is the original drawing; other sizes stretch it. */
-let LW=6;function lesionDepth(x){const u=x/LW;if(Math.abs(u)>=1)return -1;const s=x*6/Math.max(6,LW);
+   depth. The shape was drawn 12 mm wide and 2 mm deep; other sizes stretch it. It opens at 10 mm, which with 5 mm margins just fits the 20 mm cone. */
+let LW=5;function lesionDepth(x){const u=x/LW;if(Math.abs(u)>=1)return -1;const s=x*6/Math.max(6,LW);
   return RX_D/2*(Math.pow(1-u*u,0.45)*(1.55+0.2*Math.sin(s*1.35+0.4)+0.1*Math.sin(s*3.2))+0.05);}
 const stage=document.getElementById('stage');
 const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -470,10 +470,10 @@ function drawSlice(dt){
     for(const sgn of [-1,1]){sctx.beginPath();sctx.moveTo(wx(sgn*Rt),wy(yT));sctx.lineTo(wx(sgn*Re),wy(yE));sctx.lineTo(wx(sgn*(Re+T)),wy(yE));sctx.lineTo(wx(sgn*(Rt+T)),wy(yT));sctx.closePath();
       const gr=sctx.createLinearGradient(wx(sgn*Re),0,wx(sgn*(Re+T)),0);gr.addColorStop(0,'#e4eef5');gr.addColorStop(1,'#9fb1c0');sctx.fillStyle=gr;sctx.fill();}
     sctx.restore();
-    /* Brackets just above the skin: field edge (white, the cone opening) and lesion plus margin (pink, dashed). */
+    /* Brackets just above the skin: field edge (white, the cone opening) and lesion plus margin (pink, dashed, drawn first so the white stays solid where they meet). */
     const brk=(h,y,col,dash)=>{const p=new Path2D();p.moveTo(wx(-h),wy(surf(h)));p.lineTo(wx(-h),wy(y));p.lineTo(wx(h),wy(y));p.lineTo(wx(h),wy(surf(h)));
       sctx.setLineDash(dash);sctx.strokeStyle='rgba(8,16,28,.6)';sctx.lineWidth=3.2*dpr;sctx.stroke(p);sctx.strokeStyle=col;sctx.lineWidth=1.4*dpr;sctx.stroke(p);};
-    sctx.save();sctx.lineJoin='miter';brk(Re,yE-0.8,'#ffffff',[]);brk(LW+lesion.margin,yE-1.6,'#ff7ad9',[4*dpr,3*dpr]);sctx.restore();}
+    sctx.save();sctx.lineJoin='miter';brk(LW+lesion.margin,yE-1.6,'#ff7ad9',[4*dpr,3*dpr]);brk(Re,yE-0.8,'#ffffff',[]);sctx.restore();}
   if(probePt&&probePt.i<SW&&probePt.j<SH){const cx=ox+(probePt.i+0.5)*sc,cy=oy+(probePt.j+0.5)*sc,a=7*dpr,g2=2.5*dpr;sctx.fillStyle='#ffffff';sctx.strokeStyle='#0e1b2c';sctx.lineWidth=3*dpr;
     sctx.beginPath();sctx.moveTo(cx-a,cy);sctx.lineTo(cx-g2,cy);sctx.moveTo(cx+g2,cy);sctx.lineTo(cx+a,cy);sctx.moveTo(cx,cy-a);sctx.lineTo(cx,cy-g2);sctx.moveTo(cx,cy+g2);sctx.lineTo(cx,cy+a);sctx.stroke();
     sctx.strokeStyle='#ffffff';sctx.lineWidth=1.5*dpr;sctx.stroke();}
