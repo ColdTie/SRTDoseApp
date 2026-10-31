@@ -26,6 +26,7 @@ An interactive teaching app that shows how a 50 kV superficial x ray beam from a
 - Xstrahl RADiant Aura (FDA K230611): 10 to 80 kV, Varex VF-80 tube (transmission target, nearly symmetric beam).
 - SRT applicators: closed clear acrylic (PMMA) cones at 6 cm focal spot distance, sizes 10, 15, 20, 30, 40 mm.
 - Typical treatment: 50 kV, Filter 2, 20 mm cone, 2.5 Gy per visit, 20 visits (50 Gy), prescribed to 2 mm. Daily ultrasound sets the depth.
+- The only other fractionation is 3 Gy per visit, 15 visits (45 Gy).
 
 ## Physics model (current, verified)
 
@@ -156,7 +157,7 @@ Work in this order. One item per session unless Steve says otherwise.
 
 ### 1. Lesion inputs from daily ultrasound (next)
 
-- Inputs in the panel: ultrasound depth (0.5 to 6.0 mm, 0.1 steps), lesion diameter (3 to 40 mm), margin (default 5 mm, 3 to 10 mm), dose per visit (default 2.5 Gy) and visits (default 20).
+- Inputs in the panel: ultrasound depth (0.5 to 6.0 mm, 0.1 steps), lesion diameter (3 to 40 mm), margin (default 5 mm, 3 to 10 mm), and dose as a two way choice: 2.5 Gy × 20 visits (50 Gy, default) or 3 Gy × 15 visits (45 Gy). No separate visits input.
 - Prescription depth follows the ultrasound depth. The dashed line, tumor base, readout and isodose normalization all update.
 - Tumor shape scales to the diameter and depth while keeping the lobulated look.
 - Beam on time: interpolate the 6 Gy table linearly between 0.5 mm rows, scale by dose / 6. Past 4.0 mm, show "Beyond the clinic table" instead of a time, and mark depth dose there as estimated.
